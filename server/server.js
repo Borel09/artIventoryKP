@@ -1,3 +1,4 @@
+//IMPORTING BACKEND TOOLS
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -23,5 +24,5 @@ app.get('/api/artPiece', (req, res) => {
 //STARTING HARDWARE PORT LISTENER
 const PORT = 5000;
 app.listen(PORT, () => {
-    console.log('Server is open and listening on port: ${PORT}');
+    console.log(`Server is open and listening on port: ${PORT}`);
 });
