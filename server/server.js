@@ -29,6 +29,10 @@ app.use('/api/artPiece', artRoutes);
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
+// console.log("--- DEBUGGING CONNECTION VARIABLES ---");
+// console.log("Captured Port Number:", PORT);
+// console.log("Captured Connection String:", MONGO_URI);
+
 //verify that the server can read your hidden .env creditials file
 if(!MONGO_URI){
     console.error("MONGO_URI is missing from your local .env file!");
