@@ -12,7 +12,7 @@ const app = express(); //Creates teh Express server engine.
 // MIDDLEWARE (GATEKEEPERS)
 app.use(cors()); 
 app.use(express.json());
-
+app.use('/assets', express.static('assets'));
 //CREATING TEST ENDPOINT (API ROUTE)
 // app.get('/api/artPiece', (req, res) => {
 //     const mockInventory = [
