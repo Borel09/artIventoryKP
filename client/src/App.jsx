@@ -1,6 +1,6 @@
 import { useInventory } from './hooks/useInventory';
 import InventoryRow from './components/InventoryRow';
-import React, {useState} from 'react';
+import {useState} from 'react';
 import './App.css';
 
 //component import
