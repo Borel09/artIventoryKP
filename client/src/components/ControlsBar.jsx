@@ -1,7 +1,4 @@
-// src/components/ControlsBar.jsx
-// import React from 'react';
-
-function ControlsBar({ searchTerm, setSearchTerm, onAdd, onDelete }) {
+function ControlsBar({ searchTerm, setSearchTerm, onAdd }) {
   return (
     <div className="controls-bar">
       <input 
@@ -13,7 +10,7 @@ function ControlsBar({ searchTerm, setSearchTerm, onAdd, onDelete }) {
       />
       <div className="btn-group">
         <button className="action-btn" onClick={onAdd}>add</button>
-        <button className="action-btn" onClick={onDelete}>Delete</button>
+        <button className="action-btn">Delete</button>
       </div>
     </div>
   );

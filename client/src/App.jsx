@@ -7,6 +7,7 @@ import './App.css';
 import TopHeader from './components/TopHeader';
 import Sidebar from './components/Sidebar';
 import ControlsBar from './components/ControlsBar';
+//import AddPieceForm from './components/addPieceForm';
 
 
 function App() {
@@ -15,6 +16,11 @@ function App() {
   //State hooks for active tab and search
   const [activeTab, setActiveTab] = useState('inventory');
   const [searchTerm, setSearchTerm] = useState('');
+  //const [isAdding, setIsAdding] = useState(false);
+
+
+
+
 
   //filter inventory based on search term
   const filteredInventory = artInventory?.filter((item) => 

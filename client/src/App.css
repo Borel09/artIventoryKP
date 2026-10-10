@@ -125,3 +125,43 @@
 .text-right {
   text-align: right;
 }
+
+/* Add Piece Form Styles */
+.add-piece-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.form-group input {
+  padding: 10px 12px;
+  background: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #fff;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.save-btn {
+  background-color: #28a745;
+  border-color: #28a745;
+}
