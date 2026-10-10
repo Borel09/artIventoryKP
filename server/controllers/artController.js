@@ -27,11 +27,12 @@ export const addArtPiece = async (req, res) => {
             const newPieces = await ArtPiece.insertMany(req.body);
             return res.status(201).json(newPieces)
         }
-        const {title, imageUrl, masterInventory} = req.body;
+        // const {title, imageUrl, masterInventory} = req.body;
+        const {title, imageUrl, sizes} = req.body;
         const newPiece = await ArtPiece.create({
             title,
             imageUrl,
-            masterInventory
+            sizes
     });
         res.status(201).json(newPiece);
     } catch (error){

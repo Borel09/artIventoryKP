@@ -9,10 +9,15 @@ const artPieceSchema = new mongoose.Schema({
         type: String,
         required: [true, "URL required"]
     },
-    masterInventory: {
-        type: Number,
-        required: [true, "Baseline Count required"],
-        default: 0
+    // masterInventory: {
+    //     type: Number,
+    //     required: [true, "Baseline Count required"],
+    //     default: 0
+    // }
+    sizes: {
+        small: {type: Number, default:0},
+        medium: {type: Number, default:0},
+        large: {type: Number, default:0}
     }
 }, {
     timestamps: true

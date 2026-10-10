@@ -1,26 +1,33 @@
-export default function InventoryRow({ item }) {
+
+
+function InventoryRow({ item }) {
+  // Grab URL from backend (imageUrl) or frontend upload preview
+  const imageSrc = item.imageUrl || item.imagePreview || item.image;
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 140px', padding: '20px 15px', alignItems: 'center', borderBottom: '1px solid #333', backgroundColor: '#222' }}>
-      
-      {/* 1. THE IMAGE CELLS */}
-      <div>
-        <img 
-          src={item.imageUrl} 
-          alt={item.title} 
-          style={{ width: '90px', height: '90px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #444' }} 
-        />
+    <div className="table-row">
+      {/* Column 1: Image Preview */}
+      <div className="img-preview">
+        {imageSrc ? (
+          <img src={imageSrc} alt={item.title} className="row-img" />
+        ) : (
+          <span className="no-img-text">No Image</span>
+        )}
       </div>
 
-      {/* 2. THE TITLE CELL */}
-      <div style={{ fontSize: '18px', fontWeight: '500', color: '#f0f0f0' }}>
-        {item.title}
-      </div>
+      {/* Column 2: Piece Title */}
+      <div className="piece-title">{item.title}</div>
 
-      {/* 3. THE VALUE QUANTITY CELL */}
-      <div style={{ textAlign: 'right', fontSize: '22px', fontWeight: 'bold', color: '#4caf50' }}>
-        {item.masterInventory} <span style={{ fontSize: '14px', color: '#777', fontWeight: 'normal' }}>units</span>
-      </div>
+      {/* Column 3: 5x7 (S) */}
+      <div className="count-col">{item.sizes?.small ?? 0}</div>
 
+      {/* Column 4: 8x10 (M) */}
+      <div className="count-col">{item.sizes?.medium ?? 0}</div>
+
+      {/* Column 5: 11x14 (L) */}
+      <div className="count-col">{item.sizes?.large ?? 0}</div>
     </div>
   );
 }
+
+export default InventoryRow;
