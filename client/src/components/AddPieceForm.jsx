@@ -1,60 +1,139 @@
 import { useState } from 'react';
+// import './AddPieceForm.css';
 
 function AddPieceForm({ onCancel, onSave }) {
   const [title, setTitle] = useState('');
-  const [count, setCount] = useState(1);
+  const [smallCount, setSmallCount] = useState(0);
+  const [mediumCount, setMediumCount] = useState(0);
+  const [largeCount, setLargeCount] = useState(0);
   const [image, setImage] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setImage(e.dataTransfer.files[0]);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    // Send the new piece data up to App.jsx
     onSave({
-      _id: Date.now().toString(), // Temporary unique ID for frontend display
+      _id: Date.now().toString(),
       title: title,
-      count: Number(count),
-      imagePreview: image ? URL.createObjectURL(image) : null,
+      imageUrl: image ? URL.createObjectURL(image) : null,
+      sizes: {
+        small: Number(smallCount),
+        medium: Number(mediumCount),
+        large: Number(largeCount),
+      },
     });
   };
 
   return (
-    <div className="masterInvContainer">
-      <h2>Add New Art Piece</h2>
+    <div className="masterInvContainer add-piece-container">
+      <div className="form-header-bar">
+        <h2>add art piece</h2>
+      </div>
+
       <form onSubmit={handleSubmit} className="add-piece-form">
-        <div className="form-group">
-          <label>Piece Title</label>
-          <input 
-            type="text" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            placeholder="e.g. French Quarter Sunset" 
-            required 
-          />
+        {/* Drag & Drop Zone */}
+        <div 
+          className={`drop-zone ${isDragging ? 'dragging' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {image ? (
+            <p className="file-selected-text">Selected: {image.name}</p>
+          ) : (
+            <div className="drop-zone-text">
+              <p>drag&drop</p>
+              <p>image uploader</p>
+            </div>
+          )}
         </div>
 
-        <div className="form-group">
-          <label>Initial On-Hand Count</label>
-          <input 
-            type="number" 
-            value={count} 
-            onChange={(e) => setCount(e.target.value)} 
-            min="0" 
-            required 
-          />
+        {/* Choose File Option Button */}
+        <div className="file-picker-container">
+          <label className="choose-file-btn">
+            choose file option
+            <input 
+              type="file" 
+              accept="image/*" 
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setImage(e.target.files[0]);
+                }
+              }} 
+            />
+          </label>
         </div>
 
-        <div className="form-group">
-          <label>Upload Image</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            onChange={(e) => setImage(e.target.files[0])} 
-          />
+        {/* All Inputs on One Single Bottom Row */}
+        <div className="form-inputs-row">
+          <div className="input-field-group title-group">
+            <label>title:</label>
+            <input 
+              type="text" 
+              className="form-input title-input"
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              placeholder="Piece title..." 
+              required 
+            />
+          </div>
+
+          <div className="input-field-group">
+            <label>5x7:</label>
+            <input 
+              type="number" 
+              className="form-input size-num-input"
+              value={smallCount} 
+              onChange={(e) => setSmallCount(e.target.value)} 
+              min="0" 
+            />
+          </div>
+
+          <div className="input-field-group">
+            <label>8x10:</label>
+            <input 
+              type="number" 
+              className="form-input size-num-input"
+              value={mediumCount} 
+              onChange={(e) => setMediumCount(e.target.value)} 
+              min="0" 
+            />
+          </div>
+
+          <div className="input-field-group">
+            <label>11x14:</label>
+            <input 
+              type="number" 
+              className="form-input size-num-input"
+              value={largeCount} 
+              onChange={(e) => setLargeCount(e.target.value)} 
+              min="0" 
+            />
+          </div>
         </div>
 
+        {/* Form Action Buttons */}
         <div className="form-actions">
-          <button type="button" className="action-btn" onClick={onCancel}>
+          <button type="button" className="action-btn cancel-btn" onClick={onCancel}>
             Cancel
           </button>
           <button type="submit" className="action-btn save-btn">
