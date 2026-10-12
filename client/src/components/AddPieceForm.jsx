@@ -26,20 +26,38 @@ function AddPieceForm({ onCancel, onSave }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    onSave({
-      _id: Date.now().toString(),
-      title: title,
-      imageUrl: image ? URL.createObjectURL(image) : null,
-      sizes: {
-        small: Number(smallCount),
-        medium: Number(mediumCount),
-        large: Number(largeCount),
-      },
-    });
+    const formData = new FormData();
+    formData.append('title', title);
+    
+    if (image) {
+      formData.append('image', image);
+    }
+    
+    formData.append('sizes', JSON.stringify({
+      small: Number(smallCount),
+      medium: Number(mediumCount),
+      large: Number(largeCount),
+    }));
+
+    try {
+      const response = await fetch('http://localhost:5000/api/artPiece', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const savedPiece = await response.json();
+        onSave(savedPiece); // This passes the real MongoDB document back up to update your UI!
+      } else {
+        console.error('Failed to save art piece to server');
+      }
+    } catch (error) {
+      console.error('Error connecting to server:', error);
+    }
   };
 
   return (

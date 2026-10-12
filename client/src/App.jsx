@@ -1,71 +1,4 @@
-// import { useInventory } from './hooks/useInventory';
-// import InventoryRow from './components/InventoryRow';
-// import {useState} from 'react';
-// import './App.css';
 
-// //component import
-// import TopHeader from './components/TopHeader';
-// import Sidebar from './components/Sidebar';
-// import ControlsBar from './components/ControlsBar';
-// import AddPieceForm from './components/addPieceForm';
-
-
-// function App() {
-//   // Grab our data using our isolated custom hook logic
-//   const { artInventory } = useInventory();
-//   //State hooks for active tab and search
-//   const [activeTab, setActiveTab] = useState('inventory');
-//   const [searchTerm, setSearchTerm] = useState('');
-//   //const [isAdding, setIsAdding] = useState(false);
-
-
-
-
-
-//   //filter inventory based on search term
-//   const filteredInventory = artInventory?.filter((item) => 
-//     item.title?.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
- 
-//  return (
-//   <div className="app-container">
-//     {/* Top Header */}
-//     <TopHeader userName="User" />
-    
-//     {/* Main Body: Left Sidebar + Right Content Area */}
-//     <div className="main-layout">
-//       {/* Left Sidebar */}
-//       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab}/>
-//       {/* Right Content Area */}
-//       <main className="content-area">
-//         {/* Top Controls Bar */}
-//         <ControlsBar searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
-//         {/* Inventory List Box */}
-//         <div className="masterInvContainer">
-//           <h2>UI Component-Driven Inventory Spreadsheet</h2>
-
-//           <div className="table-wrapper">
-//             <div className="table-header">
-//               <div>Image Preview</div>
-//               <div>Piece Title</div>
-//               <div className="text-right">On-Hand Count</div>
-//             </div>
-
-//             {/* {artInventory.map((item) => (
-//               <InventoryRow key={item._id} item={item} />
-//             ))} */}
-//             {filteredInventory?.map((item) => 
-//               <InventoryRow key={item.id || item.id} item={item}/>
-//             )}
-//           </div>
-//         </div>
-//       </main>
-//     </div>
-//   </div>
-//   );
-// }
-
-// export default App;
 import { useState } from 'react';
 import { useInventory } from './hooks/useInventory';
 import InventoryRow from './components/InventoryRow';
@@ -74,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import ControlsBar from './components/ControlsBar';
 import AddPieceForm from './components/addPieceForm';
 import './App.css';
+import EditInventorySpreadsheet from './components/EditInventorySpreadsheet';
 
 function App() {
   const { artInventory: initialInventory } = useInventory();
@@ -83,6 +17,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Combine fetched items with locally added items
   const itemsList = [...localAddedItems, ...(initialInventory || [])];
@@ -97,6 +32,31 @@ function App() {
     setIsAdding(false);
   };
 
+  const handleSaveBulkEdits = async (updatedPieces) => {
+    try{
+      await Promise.all(
+        updatedPieces.map(async (piece) => {
+          if(!piece._id) return;
+
+          await fetch(`http://localhost:5000/api/artPiece/${piece._id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              title: piece.title,
+              sizes: piece.sizes,
+            }),
+          });
+        })
+      );
+
+      // setLocalAddedItems(updatedPieces);
+      setLocalAddedItems([]);
+      setIsEditing(false);
+    } catch (error){
+      console.error('Error updating inventory:', error);
+    }
+  };
+
   return (
     <div className="app-container">
       <TopHeader userName="User" />
@@ -108,7 +68,8 @@ function App() {
           <ControlsBar 
             searchTerm={searchTerm} 
             setSearchTerm={setSearchTerm} 
-            onAdd={() => setIsAdding(true)} 
+            onAdd={() => {setIsAdding(true); setIsEditing(false);}} 
+            onEdit={() => {setIsEditing(true); setIsAdding(false);}}
           />
 
           {isAdding ? (
@@ -116,7 +77,14 @@ function App() {
               onCancel={() => setIsAdding(false)} 
               onSave={handleSavePiece} 
             />
-          ) : (
+          ) : isEditing ? (
+            <EditInventorySpreadsheet 
+              pieces = {itemsList}
+              searchTerm={searchTerm}
+              onCancel={() => setIsEditing(false)}
+              onSave={handleSaveBulkEdits}
+              />
+          ) : (  
             <div className="masterInvContainer">
               <h2>UI Component-Driven Inventory Spreadsheet</h2>
 

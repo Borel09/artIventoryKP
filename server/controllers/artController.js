@@ -20,27 +20,53 @@ export const getInventory = async (req, res) => {
 };
 
 //Export a second async function to handle creating new entries in the system
-export const addArtPiece = async (req, res) => {
-    //Open try block
-    try{
-        if(Array.isArray(req.body)){
-            const newPieces = await ArtPiece.insertMany(req.body);
-            return res.status(201).json(newPieces)
-        }
-        // const {title, imageUrl, masterInventory} = req.body;
-        const {title, imageUrl, sizes} = req.body;
-        const newPiece = await ArtPiece.create({
-            title,
-            imageUrl,
-            sizes
-    });
-        res.status(201).json(newPiece);
-    } catch (error){
-        res.status(400).json({
-            message: "Failed to create art piece entry", error: error.message
-        });
-    }
+// export const addArtPiece = async (req, res) => {
+//     //Open try block
+//     try{
+//         if(Array.isArray(req.body)){
+//             const newPieces = await ArtPiece.insertMany(req.body);
+//             return res.status(201).json(newPieces)
+//         }
+//         // const {title, imageUrl, masterInventory} = req.body;
+//         const {title, imageUrl, sizes} = req.body;
+//         const newPiece = await ArtPiece.create({
+//             title,
+//             imageUrl,
+//             sizes
+//     });
+//         res.status(201).json(newPiece);
+//     } catch (error){
+//         res.status(400).json({
+//             message: "Failed to create art piece entry", error: error.message
+//         });
+//     }
     
+// };
+export const addArtPiece = async (req, res) => {
+  try {
+    const { title, sizes } = req.body;
+
+    // 1. Check if Multer successfully caught and saved a file
+    let imageUrl = '';
+    if (req.file) {
+      // Build the public URL pointing to your server's assets folder
+      imageUrl = `http://localhost:5000/assets/${req.file.filename}`;
+    }
+
+    // 2. Parse sizes (since FormData sends objects as JSON strings)
+    const parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+
+    // 3. Create the document in MongoDB
+    const newArtPiece = await ArtPiece.create({
+      title,
+      imageUrl,
+      sizes: parsedSizes || { small: 0, medium: 0, large: 0 }
+    });
+
+    res.status(201).json(newArtPiece);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 // 1. UPDATE FEATURE: Find an art print by ID and change its values

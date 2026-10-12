@@ -1,4 +1,4 @@
-function ControlsBar({ searchTerm, setSearchTerm, onAdd }) {
+function ControlsBar({ searchTerm, setSearchTerm, onAdd, onEdit }) {
   return (
     <div className="controls-bar">
       <input 
@@ -9,7 +9,8 @@ function ControlsBar({ searchTerm, setSearchTerm, onAdd }) {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div className="btn-group">
-        <button className="action-btn" onClick={onAdd}>add</button>
+        <button className="action-btn" onClick={onEdit}>Edit</button>
+        <button className="action-btn" onClick={onAdd}>Add</button>
         <button className="action-btn">Delete</button>
       </div>
     </div>
