@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
   const [editablePieces, setEditablePieces] = useState(pieces);
+  const [deleteIds, setDeleteIds] = useState([]);
 
   const filteredPieces = editablePieces.filter((piece) =>
     piece.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -28,6 +29,16 @@ function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
     );
   };
 
+  const toggleDelete = (id) => {
+    setDeleteIds(prev => {
+       if(prev.includes(id)) {
+        return prev.filter(itemIds => itemIds !== id);
+       } else {
+        return [...prev, id];
+       }
+    })
+  }
+
   // UPDATE START: Clean data handler to strip out temporary UI props before saving
   const handleSaveClick = () => {
     const cleanPieces = editablePieces.map(piece => {
@@ -35,14 +46,15 @@ function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
       const finalTitle = piece.title.trim() === '' ? (piece.originalTitle || piece.title) : piece.title;
       
       // Remove temporary tracking fields so your backend/parent only gets pure piece data
-      const { originalTitle, _isFocused, ...rest } = piece;
+      const {...rest } = piece;
+    //   originalTitle, _isFocused, 
       return {
         ...rest,
         title: finalTitle
       };
     });
 
-    onSave(cleanPieces);
+    onSave(cleanPieces, deleteIds);
   };
   // UPDATE END
 
@@ -71,11 +83,22 @@ function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
         }
         .custom-edit-table tr {
           border-bottom: 1px solid #222;
+          transition: background-color 0.2s, opacity 0.2s;
         }
         .custom-edit-table td {
           padding: 14px 16px;
           vertical-align: middle;
         }
+
+        .row-deleted{
+            background-color: rgba(40, 40, 40, 0.4) !important;
+            opacity: 0.5;
+        }
+
+        .row-deleted input {
+            pointer-events: none;
+        }
+
         .edit-img-preview {
           width: 55px;
           height: 55px;
@@ -126,6 +149,35 @@ function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
           padding: 6px 4px;
         }
 
+        .row-actions-cell {
+          text-align: right;
+          white-space: nowrap;
+        }
+
+        .trash-btn, .undo-btn {
+          background: transparent;
+          border: 1px solid #444;
+          border-radius: 4px;
+          padding: 6px 10px;
+          cursor: pointer;
+          font-size: 0.85rem;
+          transition: all 0.2s;
+        }
+        .trash-btn {
+          color: #ff5c5c;
+        }
+        .trash-btn:hover {
+          background: rgba(255, 92, 92, 0.1);
+          border-color: #ff5c5c;
+        }
+        .undo-btn {
+          color: #4da6ff;
+          border-color: #4da6ff;
+        }
+        .undo-btn:hover {
+          background: rgba(77, 166, 255, 0.1);
+        }
+
         .edit-header h2 {
           text-transform: none !important;
         }
@@ -135,11 +187,11 @@ function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
         <h2>Edit Inventory</h2>
         <div className="form-actions">
           <button type="button" className="action-btn cancel-btn" onClick={onCancel}>
-            cancel
+            Cancel
           </button>
           {/* Updated to use our clean data wrapper */}
           <button type="button" className="action-btn save-btn" onClick={handleSaveClick}>
-            save
+            Save
           </button>
         </div>
       </div>
@@ -153,11 +205,18 @@ function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
               <th className="center" style={{ width: '135px' }}>5x7 (S)</th>
               <th className="center" style={{ width: '135px' }}>8x10 (M)</th>
               <th className="right" style={{ width: '135px' }}>11x14 (L)</th>
+
+              <th className="right" style={{width: '80px'}}>Actions</th>  
+
             </tr>
           </thead>
           <tbody>
-            {filteredPieces.map((piece) => (
-              <tr key={piece._id || piece.id}>
+            {filteredPieces.map((piece) => {
+                const pieceId = piece._id || piece.id;
+                const isMarkedDeleted = deleteIds.includes(pieceId);
+                
+                return (
+              <tr key={pieceId} className={isMarkedDeleted? 'row-deleted': ''}>
                 {/* Image Preview */}
                 <td>
                   <img 
@@ -237,8 +296,32 @@ function EditInventorySpreadsheet({ pieces, searchTerm, onCancel, onSave }) {
                     />
                   </div>
                 </td>
+                
+                <td className="row-actions-cell">
+                    {isMarkedDeleted ? (
+                      <button 
+                        type="button" 
+                        className="undo-btn" 
+                        onClick={() => toggleDelete(pieceId)}
+                        title="Undo deletion"
+                      >
+                        Undo
+                      </button>
+                    ) : (
+                      <button 
+                        type="button" 
+                        className="trash-btn" 
+                        onClick={() => toggleDelete(pieceId)}
+                        title="Mark for deletion"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </td>
+
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>
