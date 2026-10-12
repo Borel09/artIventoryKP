@@ -1,4 +1,8 @@
 import mongoose from 'mongoose';
+const sizeSubSchema = new mongoose.Schema ({
+    count: {type: Number, default: 0},
+    min: {type: Number, default: 0}
+}, {_id: false});
 
 const artPieceSchema = new mongoose.Schema({
     title: {
@@ -9,15 +13,10 @@ const artPieceSchema = new mongoose.Schema({
         type: String,
         required: [true, "URL required"]
     },
-    // masterInventory: {
-    //     type: Number,
-    //     required: [true, "Baseline Count required"],
-    //     default: 0
-    // }
     sizes: {
-        small: {type: Number, default:0},
-        medium: {type: Number, default:0},
-        large: {type: Number, default:0}
+        small: {type: sizeSubSchema, default:{count: 0, min: 0}},
+        medium: {type: sizeSubSchema, default:{count: 0, min: 0}},
+        large: {type: sizeSubSchema, default:{count: 0, min: 0}}
     }
 }, {
     timestamps: true

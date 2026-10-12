@@ -38,9 +38,9 @@ function AddPieceForm({ onCancel, onSave }) {
     }
     
     formData.append('sizes', JSON.stringify({
-      small: Number(smallCount),
-      medium: Number(mediumCount),
-      large: Number(largeCount),
+      small: { count: Number(smallCount) || 0, min: 0 },
+      medium: { count: Number(mediumCount) || 0, min: 0 },
+      large: { count: Number(largeCount) || 0, min: 0 },
     }));
 
     try {

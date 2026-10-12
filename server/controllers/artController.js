@@ -19,25 +19,31 @@ export const addArtPiece = async (req, res) => {
   try {
     const { title, sizes } = req.body;
 
-    // 1. Check if Multer successfully caught and saved a file
     let imageUrl = '';
     if (req.file) {
-      // Build the public URL pointing to your server's assets folder
       imageUrl = `http://localhost:5000/assets/${req.file.filename}`;
     }
 
-    // 2. Parse sizes (since FormData sends objects as JSON strings)
-    const parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+    // Safely parse sizes if sent as a string from FormData
+    let parsedSizes = {
+      small: { count: 0, min: 0 },
+      medium: { count: 0, min: 0 },
+      large: { count: 0, min: 0 }
+    };
 
-    // 3. Create the document in MongoDB
+    if (sizes) {
+      parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+    }
+
     const newArtPiece = await ArtPiece.create({
       title,
       imageUrl,
-      sizes: parsedSizes || { small: 0, medium: 0, large: 0 }
+      sizes: parsedSizes
     });
 
     res.status(201).json(newArtPiece);
   } catch (error) {
+    console.error("SERVER ADD ERROR:", error.message); // This will show the exact reason in your terminal
     res.status(500).json({ error: error.message });
   }
 };
@@ -46,12 +52,18 @@ export const addArtPiece = async (req, res) => {
 // @route   PUT /api/artPiece/:id
 export const updateArtPiece = async (req, res) => {
     try {
+        const { title, sizes } = req.body;
+        const parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;            
+
         // req.params.id grabs the target string from the URL path
         // req.body contains the updated fields (like title or count)
         // { new: true } tells Mongoose to return the updated record back to us
         const updatedPiece = await ArtPiece.findByIdAndUpdate(
             req.params.id, 
-            req.body, 
+            { 
+              ...(title && { title }), 
+              ...(parsedSizes && { sizes: parsedSizes }) 
+            }, 
             { new: true, runValidators: true }
         );
 
