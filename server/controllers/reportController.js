@@ -1,13 +1,15 @@
 import ShiftReport from '../models/ShiftReport.js';
 import ArtPiece from '../models/ArtPiece.js';
 
+
 // 1. Submit a new EOD shift report (Sales User / Admin action)
 export const submitShiftReport = async (req, res) => {
   try {
-    const { itemsSold, submittedBy } = req.body;
+    const { itemsSold, submittedBy, location } = req.body; // Destructure location here!
     
     const newReport = await ShiftReport.create({
       submittedBy: submittedBy || 'Sales Employee',
+      location,
       itemsSold,
       status: 'pending'
     });
@@ -60,4 +62,13 @@ export const approveShiftReport = async (req, res) => {
     console.error("APPROVE REPORT ERROR:", error.message);
     res.status(500).json({ error: error.message });
   }
+};
+
+export const clearPendingReports = async (req, res) => {
+    try {
+        const result = await ShiftReport.deleteMany({ status: 'pending' });
+        res.status(200).json({ message: 'Pending reports cleared successfully', result });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };

@@ -3,10 +3,17 @@ import { useState } from 'react';
 function DailyReportModal({ shiftLog, onClose, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [location, setLocation] = useState(''); // <--- 1. Add location state
 
   const handleFinalSubmit = async () => {
     if (shiftLog.length === 0) {
       setErrorMessage("No sales logged for today yet!");
+      return;
+    }
+
+    // Optional: Validate that location is provided before submitting
+    if (!location.trim()) {
+      setErrorMessage("Please enter a location/venue for this shift report.");
       return;
     }
 
@@ -19,6 +26,7 @@ function DailyReportModal({ shiftLog, onClose, onSuccess }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           submittedBy: 'Sales Staff',
+          location: location, // <--- 2. Send location in the payload
           itemsSold: shiftLog
         })
       });
@@ -48,10 +56,24 @@ function DailyReportModal({ shiftLog, onClose, onSuccess }) {
 
         {errorMessage && <div style={{ color: 'red', marginBottom: '10px' }}>{errorMessage}</div>}
 
+        {/* --- 3. Add Location Input Field --- */}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#333' }}>
+            Location / Venue:
+          </label>
+          <input 
+            type="text" 
+            value={location} 
+            onChange={(e) => setLocation(e.target.value)} 
+            placeholder="e.g., Downtown Gallery or Art Fest Booth" 
+            style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}
+          />
+        </div>
+
         {shiftLog.length === 0 ? (
           <p style={{ fontStyle: 'italic', color: '#666' }}>Your today shift log is currently empty.</p>
         ) : (
-          <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+          <div style={{ maxHeight: '250px', overflowY: 'auto', marginBottom: '20px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
