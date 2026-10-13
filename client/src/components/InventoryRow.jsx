@@ -1,47 +1,50 @@
-
-
-// function InventoryRow({ item }) {
-//   // Grab URL from backend (imageUrl) or frontend upload preview
+// function InventoryRow({ item, selectedSaleSize, onSelectSize }) {
 //   const imageSrc = item.imageUrl || item.imagePreview || item.image;
+//   const itemId = item._id || item.id;
 
-//   //Helper to check stock status across all sizes
-//   const getStockAlertClass = () => {
-//     let hasRed = false;
-//     let hasYellow = false;
-    
-//     const sizes = item.sizes || {};
+//   // Helper to check stock status for a specific size (used in normal inventory view)
+//   const getSizeStatus = (sizeObj) => {
+//     const count = typeof sizeObj === 'object' ? (sizeObj?.count ?? 0) : (sizeObj ?? 0);
+//     const min = typeof sizeObj === 'object' ? (sizeObj?.min ?? 0) : 0;
 
-//     Object.values(sizes).forEach(sizeObj => {
-//       //Handle backward compatibility (size = raw numb vs an object)
-//       const count = typeof sizeObj === 'object' ? (sizeObj?.count ?? 0) : (sizeObj ?? 0);
-//       const min = sizeObj === 'object' ? (sizeObj?.min ?? 0) : 0;
-
-//       if(count <= min) {
-//         hasRed = true;
-//       } else if (count <= min + 3){
-//         hasYellow = true;
-//       }
-//     });
-
-//     if(hasRed) return 'row-alert-red';
-//     if(hasYellow) return 'row-alert-yellow';
+//     if (count <= min) return 'size-alert-red'; 
+//     if (count <= min + 3) return 'size-alert-yellow'; 
 //     return '';
 //   };
 
-//   const alertClass = getStockAlertClass();
-
-//   //Helper to cleanly display count values on the row
-//   const renderCount = (sizeKey) => {
-//     const val = item.sizes?.[sizeKey];
-//     if( val && typeof val === 'object'){
-//       return val.count ?? 0;
+//   const renderContent = (sizeKey) => {
+//     // If onSelectSize is provided, we are in the Sales Log mode and render a checkbox
+//     if (onSelectSize) {
+//       const isChecked = selectedSaleSize === sizeKey;
+//       return (
+//         <input 
+//           type="checkbox"
+//           checked={isChecked}
+//           onChange={(e) => onSelectSize(itemId, sizeKey, e.target.checked)}
+//           style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2e7d32' }}
+//         />
+//       );
 //     }
-//     return val ?? 0;
+
+//     // Otherwise, render the normal inventory stock badge
+//     const val = item.sizes?.[sizeKey];
+//     const count = val && typeof val === 'object' ? (val.count ?? 0) : (val ?? 0);
+//     const statusClass = getSizeStatus(val);
+
+//     return (
+//       <span className={`size-count-badge ${statusClass}`}>
+//         {count}
+//       </span>
+//     );
 //   };
 
+//   const isSelected = selectedSaleSize !== undefined && selectedSaleSize !== null;
+
 //   return (
-//     <div className={`table-row ${alertClass}`}>
-//       {/* Column 1: Image Preview */}
+//     <div 
+//       className="table-row"
+//       style={isSelected ? { backgroundColor: '#1e3320' } : {}}
+//     >
 //       <div className="img-preview">
 //         {imageSrc ? (
 //           <img src={imageSrc} alt={item.title} className="row-img" />
@@ -50,36 +53,44 @@
 //         )}
 //       </div>
 
-//       {/* Column 2: Piece Title */}
 //       <div className="piece-title">{item.title}</div>
 
-//       {/* Column 3: 5x7 (S) */}
-//       <div className="count-col">{renderCount('small')}</div>
-
-//       {/* Column 4: 8x10 (M) */}
-//       <div className="count-col">{renderCount('medium')}</div>
-
-//       {/* Column 5: 11x14 (L) */}
-//       <div className="count-col">{renderCount('large')}</div>
+//       <div className="count-col">{renderContent('small')}</div>
+//       <div className="count-col">{renderContent('medium')}</div>
+//       <div className="count-col">{renderContent('large')}</div>
 //     </div>
 //   );
 // }
 
 // export default InventoryRow;
-function InventoryRow({ item }) {
-  const imageSrc = item.imageUrl || item.imagePreview || item.image;
 
-  // Helper to check stock status for a specific size
+function InventoryRow({ item, selectedSaleSizes, onToggleSize }) {
+  const imageSrc = item.imageUrl || item.imagePreview || item.image;
+  const itemId = item._id || item.id;
+
   const getSizeStatus = (sizeObj) => {
     const count = typeof sizeObj === 'object' ? (sizeObj?.count ?? 0) : (sizeObj ?? 0);
     const min = typeof sizeObj === 'object' ? (sizeObj?.min ?? 0) : 0;
 
-    if (count <= min) return 'size-alert-red'; // At or below min
-    if (count <= min + 3) return 'size-alert-yellow'; // Approaching min
+    if (count <= min) return 'size-alert-red'; 
+    if (count <= min + 3) return 'size-alert-yellow'; 
     return '';
   };
 
-  const renderCount = (sizeKey) => {
+  const renderContent = (sizeKey) => {
+    // If onToggleSize is provided, we render checkboxes for multi-select sales mode
+    if (onToggleSize) {
+      const isChecked = selectedSaleSizes?.[sizeKey] || false;
+      return (
+        <input 
+          type="checkbox"
+          checked={isChecked}
+          onChange={(e) => onToggleSize(itemId, sizeKey, e.target.checked)}
+          style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2e7d32' }}
+        />
+      );
+    }
+
     const val = item.sizes?.[sizeKey];
     const count = val && typeof val === 'object' ? (val.count ?? 0) : (val ?? 0);
     const statusClass = getSizeStatus(val);
@@ -91,8 +102,13 @@ function InventoryRow({ item }) {
     );
   };
 
+  const hasAnySelected = selectedSaleSizes && Object.values(selectedSaleSizes).some(Boolean);
+
   return (
-    <div className="table-row">
+    <div 
+      className="table-row"
+      style={hasAnySelected ? { backgroundColor: '#1e3320' } : {}}
+    >
       <div className="img-preview">
         {imageSrc ? (
           <img src={imageSrc} alt={item.title} className="row-img" />
@@ -103,9 +119,9 @@ function InventoryRow({ item }) {
 
       <div className="piece-title">{item.title}</div>
 
-      <div className="count-col">{renderCount('small')}</div>
-      <div className="count-col">{renderCount('medium')}</div>
-      <div className="count-col">{renderCount('large')}</div>
+      <div className="count-col">{renderContent('small')}</div>
+      <div className="count-col">{renderContent('medium')}</div>
+      <div className="count-col">{renderContent('large')}</div>
     </div>
   );
 }

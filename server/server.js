@@ -1,10 +1,12 @@
 //IMPORTING BACKEND TOOLS
 import mongoose from 'mongoose';
 import artRoutes from './routes/artRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
 
 //Init Server APP
 dotenv.config();        
@@ -24,7 +26,9 @@ app.use('/assets', express.static('assets'));
 //     res.json(mockInventory);
 // })
 
+//ROUTES
 app.use('/api/artPiece', artRoutes);
+app.use('/api/reports', reportRoutes);
 
 //STARTING HARDWARE PORT LISTENER
 const PORT = process.env.PORT || 5000;
