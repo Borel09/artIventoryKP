@@ -1,4 +1,4 @@
-// import { useState } from 'react';
+// import { useState, useEffect } from 'react';
 // import { useInventory } from './hooks/useInventory';
 // import InventoryRow from './components/InventoryRow';
 // import TopHeader from './components/TopHeader';
@@ -21,17 +21,51 @@
 //   const [editedItemsMap, setEditedItemsMap] = useState({});
 //   const [deletedIds, setDeletedIds] = useState([]);
   
+//   // User Role State ('admin' or 'sales')
+//   const [userRole, setUserRole] = useState('admin');
+
 //   // Shift sales, location, and modal state
 //   const [todayShiftLog, setTodayShiftLog] = useState([]);
 //   const [salesLocation, setSalesLocation] = useState('French Market');
 //   const [isEodModalOpen, setIsEodModalOpen] = useState(false);
   
+//   // Admin Review Queue state
+//   const [pendingReports, setPendingReports] = useState([]);
+//   const [selectedAdminReport, setSelectedAdminReport] = useState(null);
+
 //   // State for Step 1 & Step 2 Edit Mode
 //   const [selectedSaleItems, setSelectedSaleItems] = useState({});
 //   const [isLogEditing, setIsLogEditing] = useState(false);
 
 //   // State to toggle showing only low stock items
 //   const [showOnlyAlerts, setShowOnlyAlerts] = useState(false);
+
+  
+//   const fetchPendingReports = async () => {
+//     try {
+//       const res = await fetch('http://localhost:5000/api/reports/pending');
+//       if (res.ok) {
+//         const data = await res.json();
+//         // Support both direct array or wrapped object responses
+//         const reportsList = Array.isArray(data) ? data : (data.reports || data.pendingReports || []);
+//         setPendingReports(reportsList);
+//         if (reportsList.length > 0) {
+//           setSelectedAdminReport(reportsList[0]);
+//         } else {
+//           setSelectedAdminReport(null);
+//         }
+//       }
+//     } catch (err) {
+//       console.error('Error fetching pending reports:', err);
+//     }
+//   };
+
+//   useEffect(() => {
+//     // React lint flags this data-fetch-on-mount pattern, but it's the correct way to
+//     // initialize pending reports from the backend without a cascading render loop.
+//     // eslint-disable-next-line react-hooks/set-state-in-effect
+//     fetchPendingReports();
+//   }, []);
 
 //   // Combine fetched items, filter out deleted IDs, and apply edits map
 //   const rawList = [...(initialInventory || []), ...localAddedItems];
@@ -73,7 +107,6 @@
 //       const existingPieceSizes = prev[pieceId] || { small: false, medium: false, large: false };
 //       const updatedPieceSizes = { ...existingPieceSizes, [sizeKey]: isChecked };
 
-//       // If all sizes are unchecked, remove the piece entirely from selections
 //       if (!updatedPieceSizes.small && !updatedPieceSizes.medium && !updatedPieceSizes.large) {
 //         const copy = { ...prev };
 //         delete copy[pieceId];
@@ -132,8 +165,6 @@
 //     });
 
 //     alert('Successfully added selected sales to today’s shift log!');
-    
-//     // Reset selections and navigate to Daily Sales Log
 //     setSelectedSaleItems({});
 //     setSearchTerm('');
 //     setActiveTab('sales-daily-log');
@@ -141,6 +172,23 @@
 
 //   const handleRemoveLogItem = (artPieceId) => {
 //     setTodayShiftLog(prevLog => prevLog.filter(item => item.artPieceId !== artPieceId));
+//   };
+
+//   const handleApproveReport = async (reportId) => {
+//     try {
+//       const res = await fetch(`http://localhost:5000/api/reports/${reportId}/approve`, {
+//         method: 'PUT'
+//       });
+//       if (!res.ok) throw new Error('Failed to approve report');
+
+//       alert('Report approved successfully! Master inventory updated.');
+      
+//       // Refresh pending queue and immediately reload the page so the inventory hook re-fetches the fresh database counts
+//       await fetchPendingReports();
+//       window.location.reload(); 
+//     } catch (err) {
+//       alert(err.message);
+//     }
 //   };
 
 //   const handleSaveBulkEdits = async (updatedPieces, deletedIdsParam = []) => {
@@ -196,6 +244,23 @@
 
 //       <TopHeader userName="User" />
       
+//       {/* Role Switcher Bar for Testing */}
+//       <div style={{ background: '#1a1a1a', padding: '8px 20px', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+//         <span style={{ color: '#aaa' }}>Current View Role:</span>
+//         <button 
+//           onClick={() => setUserRole('admin')}
+//           style={{ padding: '4px 10px', background: userRole === 'admin' ? '#2e7d32' : '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+//         >
+//           Admin
+//         </button>
+//         <button 
+//           onClick={() => setUserRole('sales')}
+//           style={{ padding: '4px 10px', background: userRole === 'sales' ? '#2e7d32' : '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+//         >
+//           Sales Staff
+//         </button>
+//       </div>
+
 //       <div className="main-layout">
 //         <Sidebar
 //           activeTab={activeTab} 
@@ -212,7 +277,21 @@
 //             onEdit={() => {setIsEditing(true); setIsAdding(false); setActiveTab('inventory');}}
 //             isAddingActive={isAdding}
 //             isEditingActive={isEditing}
-//             hideActionButtons={activeTab.startsWith('sales-')}
+//             hideActionButtons={userRole === 'sales' || activeTab.startsWith('sales-') || activeTab === 'admin-review'}
+//             extraButton={
+//               userRole === 'admin' && pendingReports.length > 0 ? (
+//                 <button 
+//                   onClick={async () => {
+//                     await fetchPendingReports();
+//                     setActiveTab('admin-review');
+//                   }}
+//                   className={`action-btn ${activeTab === 'admin-review' ? 'active-green' : ''}`}
+//                   style={{ backgroundColor: '#1976d2', color: '#fff', border: 'none', fontWeight: 'bold' }}
+//                 >
+//                   📋 Review Queue ({pendingReports.length})
+//                 </button>
+//               ) : null
+//             }
 //           />
 
 //           {isAdding ? (
@@ -453,7 +532,8 @@
 
 //                           alert('EOD Report submitted to admin queue successfully for side-by-side review!');
 //                           setTodayShiftLog([]);
-//                           setActiveTab('sales-log-item');
+//                           await fetchPendingReports();
+//                           setActiveTab('inventory');
 //                         } catch (err) {
 //                           alert(err.message);
 //                         }
@@ -463,6 +543,112 @@
 //                       Submit for Approval
 //                     </button>
 //                   </div>
+//                 </div>
+//               )}
+//             </div>
+//           ) : activeTab === 'admin-review' && userRole === 'admin' ? (
+//             /* --- Admin Review Side-by-Side Queue --- */
+//             <div className="masterInvContainer">
+//               <h2 style={{ margin: 0 }}>Admin Review Queue (Side-by-Side Verification)</h2>
+//               <p style={{ color: 'var(--text-secondary, #aaa)', marginTop: '5px' }}>Review submitted sales reports against live master inventory before approving and timestamping updates.</p>
+
+//               {pendingReports.length === 0 ? (
+//                 <p style={{ fontStyle: 'italic', color: '#888', marginTop: '30px' }}>
+//                   No pending reports in the queue for review.
+//                 </p>
+//               ) : (
+//                 <div style={{ marginTop: '20px' }}>
+//                   {/* Report Selector Tabs */}
+//                   <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+//                     {pendingReports.map((rep) => (
+//                       <button
+//                         key={rep._id}
+//                         onClick={() => setSelectedAdminReport(rep)}
+//                         style={{
+//                           padding: '8px 16px',
+//                           background: selectedAdminReport?._id === rep._id ? '#2e7d32' : '#333',
+//                           color: '#fff',
+//                           border: 'none',
+//                           borderRadius: '4px',
+//                           cursor: 'pointer',
+//                           fontWeight: '600'
+//                         }}
+//                       >
+//                         {rep.location} ({new Date(rep.createdAt).toLocaleDateString()})
+//                       </button>
+//                     ))}
+//                   </div>
+
+//                   {selectedAdminReport ? (
+//                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+//                       {/* Left Side: Submitted Report */}
+//                       <div style={{ background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+//                         <h3 style={{ marginTop: 0, color: '#4caf50' }}>Submitted Report ({selectedAdminReport.location})</h3>
+//                         <p style={{ fontSize: '13px', color: '#aaa' }}>Submitted by: {selectedAdminReport.submittedBy}</p>
+                        
+//                         <div className="table-wrapper" style={{ marginTop: '15px' }}>
+//                           <div className="table-header" style={{ display: 'flex', width: '100%', fontSize: '13px' }}>
+//                             <div style={{ flex: 1.5 }}>Title</div>
+//                             <div style={{ flex: 1 }}>5x7</div>
+//                             <div style={{ flex: 1 }}>8x10</div>
+//                             <div style={{ flex: 1, textAlign: 'right' }}>11x14</div>
+//                           </div>
+//                           {selectedAdminReport.itemsSold?.map((entry, idx) => (
+//                             <div key={idx} style={{ display: 'flex', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center', fontSize: '13px' }}>
+//                               <div style={{ flex: 1.5, fontWeight: '500' }}>{entry.title}</div>
+//                               <div style={{ flex: 1 }}>{entry.sold?.small || 0}</div>
+//                               <div style={{ flex: 1 }}>{entry.sold?.medium || 0}</div>
+//                               <div style={{ flex: 1, textAlign: 'right' }}>{entry.sold?.large || 0}</div>
+//                             </div>
+//                           ))}
+//                         </div>
+//                       </div>
+
+//                       {/* Right Side: Current Master Inventory */}
+//                       <div style={{ background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+//                         <h3 style={{ marginTop: 0, color: '#2196f3' }}>Current Master Inventory Levels</h3>
+//                         <p style={{ fontSize: '13px', color: '#aaa' }}>Live counts before approval</p>
+
+//                         <div className="table-wrapper" style={{ marginTop: '15px' }}>
+//                           <div className="table-header" style={{ display: 'flex', width: '100%', fontSize: '13px' }}>
+//                             <div style={{ flex: 1.5 }}>Title</div>
+//                             <div style={{ flex: 1 }}>5x7 (S)</div>
+//                             <div style={{ flex: 1 }}>8x10 (M)</div>
+//                             <div style={{ flex: 1, textAlign: 'right' }}>11x14 (L)</div>
+//                           </div>
+//                           {itemsList.map((item) => {
+//                             const itemId = item._id || item.id;
+//                             const isSoldInReport = selectedAdminReport.itemsSold?.some(e => e.artPieceId === itemId);
+//                             return (
+//                               <div key={itemId} style={{ display: 'flex', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center', fontSize: '13px', background: isSoldInReport ? 'rgba(76, 175, 80, 0.08)' : 'transparent' }}>
+//                                 <div style={{ flex: 1.5, fontWeight: '500' }}>{item.title}</div>
+//                                 <div style={{ flex: 1 }}>{item.sizes?.small?.count ?? 0}</div>
+//                                 <div style={{ flex: 1 }}>{item.sizes?.medium?.count ?? 0}</div>
+//                                 <div style={{ flex: 1, textAlign: 'right' }}>{item.sizes?.large?.count ?? 0}</div>
+//                               </div>
+//                             );
+//                           })}
+//                         </div>
+//                       </div>
+//                     </div>
+//                   ) : (
+//                     <p style={{ color: '#aaa' }}>Select a report above to review.</p>
+//                   )}
+
+//                   {/* Approve Action Footer */}
+//                   {selectedAdminReport && (
+//                     <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end', gap: '15px', alignItems: 'center' }}>
+//                       <span style={{ fontSize: '13px', color: '#aaa' }}>
+//                         Approving will timestamp this report and subtract quantities from master inventory.
+//                       </span>
+//                       <button
+//                         onClick={() => handleApproveReport(selectedAdminReport._id)}
+//                         style={{ padding: '12px 24px', backgroundColor: '#2e7d32', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+//                       >
+//                         Approve & Update Master Inventory ✓
+//                       </button>
+//                     </div>
+//                   )}
 //                 </div>
 //               )}
 //             </div>
@@ -694,24 +880,9 @@ function App() {
     setActiveTab('sales-daily-log');
   };
 
-  // const handleRemoveLogItem = (artPieceId) => {
-  //   setTodayShiftLog(prevLog => prevLog.filter(item => item.artPieceId !== artPieceId));
-  // };
-
-  // const handleApproveReport = async (reportId) => {
-  //   try {
-  //     const res = await fetch(`http://localhost:5000/api/reports/${reportId}/approve`, {
-  //       method: 'PUT'
-  //     });
-  //     if (!res.ok) throw new Error('Failed to approve report');
-
-  //     alert('Report approved successfully! Master inventory updated.');
-  //     await fetchPendingReports();
-  //     setActiveTab('inventory');
-  //   } catch (err) {
-  //     alert(err.message);
-  //   }
-  // };
+  const handleRemoveLogItem = (artPieceId) => {
+    setTodayShiftLog(prevLog => prevLog.filter(item => item.artPieceId !== artPieceId));
+  };
 
   const handleApproveReport = async (reportId) => {
     try {
@@ -762,6 +933,11 @@ function App() {
 
       setLocalAddedItems(prev => prev.filter(item => !deletedIdsParam.includes(item._id || item.id)));
       setIsEditing(false);
+
+      // --- FIX: Immediately reload the page after bulk edits save ---
+      // This ensures the inventory hook cleanly re-syncs with the newly saved database records
+      // and resolves the empty inventory table bug upon returning from the edit spreadsheet view.
+      window.location.reload();
     } catch (error) {
       console.error('Error updating/deleting inventory:', error);
     }
