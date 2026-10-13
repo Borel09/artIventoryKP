@@ -211,6 +211,7 @@
 //             onEdit={() => {setIsEditing(true); setIsAdding(false); setActiveTab('inventory');}}
 //             isAddingActive={isAdding}
 //             isEditingActive={isEditing}
+//             hideActionButtons={activeTab.startsWith('sales-')}
 //           />
 
 //           {isAdding ? (
@@ -293,7 +294,7 @@
 
 //               {todayShiftLog.length === 0 ? (
 //                 <p style={{ fontStyle: 'italic', color: '#888', marginTop: '20px' }}>
-//                   No sales recorded yet today. Go to "1) Log Item Sold" in the sidebar to record items.
+//                   No sales recorded yet today. Go to "Log Item Sold" in the sidebar to record items.
 //                 </p>
 //               ) : (
 //                 <>
@@ -491,7 +492,6 @@
 
 // export default App;
 
-
 import { useState } from 'react';
 import { useInventory } from './hooks/useInventory';
 import InventoryRow from './components/InventoryRow';
@@ -626,7 +626,7 @@ function App() {
 
     alert('Successfully added selected sales to today’s shift log!');
     
-    // Reset selections and navigate to Step 2
+    // Reset selections and navigate to Daily Sales Log
     setSelectedSaleItems({});
     setSearchTerm('');
     setActiveTab('sales-daily-log');
@@ -721,15 +721,13 @@ function App() {
               onSave={handleSaveBulkEdits}
             />
           ) : activeTab === 'sales-log-item' ? (
-            /* --- STEP 1: Log Item Sold (Multi-select enabled) --- */
+            /* --- Log Item Sold --- */
             <div className="masterInvContainer">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <div>
-                  <h2 style={{ margin: 0 }}>Log Items Sold</h2>
-                  <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary, #aaa)', fontSize: '14px' }}>
-                    Check sizes sold across multiple pieces, then submit them together to your daily shift log.
-                  </p>
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '20px' }}>
+                <h2 style={{ margin: 0 }}>Log Items Sold</h2>
+                <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary, #aaa)', fontSize: '14px' }}>
+                  Check sizes sold across multiple pieces, then submit them together to your daily shift log.
+                </p>
               </div>
 
               <div className="table-wrapper">
@@ -781,14 +779,14 @@ function App() {
               </div>
             </div>
           ) : activeTab === 'sales-daily-log' ? (
-            /* --- STEP 2: View Daily Sales Log with Toggleable Edit Mode --- */
+            /* --- View Daily Sales Log --- */
             <div className="masterInvContainer">
               <h2 style={{ margin: 0 }}>View Daily Sales Log</h2>
               <p style={{ color: 'var(--text-secondary, #aaa)', marginTop: '5px' }}>Here is everything logged during today's shift so far:</p>
 
               {todayShiftLog.length === 0 ? (
                 <p style={{ fontStyle: 'italic', color: '#888', marginTop: '20px' }}>
-                  No sales recorded yet today. Go to "Log Item Sold" in the sidebar to record items.
+                  No sales recorded yet today. Go to "Log Items Sold" in the sidebar to record items.
                 </p>
               ) : (
                 <>
@@ -861,7 +859,7 @@ function App() {
               )}
             </div>
           ) : activeTab === 'sales-review-eod' ? (
-            /* --- STEP 3: Review EOD Shift Report --- */
+            /* --- Review EOD Shift Report --- */
             <div className="masterInvContainer">
               <h2 style={{ margin: 0 }}>Review EOD Shift Report</h2>
               <p style={{ color: 'var(--text-secondary, #aaa)', marginTop: '5px' }}>Compare your accumulated shift sales with your handwritten logs for accuracy before final submission.</p>
